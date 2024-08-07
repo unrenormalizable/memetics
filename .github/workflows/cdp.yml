@@ -167,11 +167,6 @@ jobs:
           VITE_APP_COMMIT_ID: ${{steps.createbuildversion.outputs.buildcommit}}
           VITE_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
 
-      - name: Generate app.ver
-        run: |
-          echo ${{steps.createbuildversion.outputs.buildversion}} >./web/build/app.ver
-          cat ./web/build/app.ver
-
   deploy:
     name: Deplot
     needs: [build-test-rust, lint-rust, build-lint-test-web]
