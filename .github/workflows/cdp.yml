@@ -15,12 +15,13 @@ on:
 
 jobs:
   createbuildvars:
+    name: Create build variables
     runs-on: windows-latest
     outputs:
       output1: ${{steps.step1.outputs.test}}
       output2: ${{steps.step2.outputs.test}}
-      buildversion: ${{steps.buildversion.outputs.buildversion}}
-      buildcommit: ${{steps.buildcommit.outputs.buildcommit}}
+      buildversion: ${{steps.createbuildversion.outputs.buildversion}}
+      buildcommit: ${{steps.createbuildcommit.outputs.buildcommit}}
     steps:
       - id: step1
         run: echo "test=hello" >> "$GITHUB_OUTPUT"
@@ -28,10 +29,10 @@ jobs:
       - id: step2
         run: echo "test=world" >> "$GITHUB_OUTPUT"
 
-      - id: buildversion
+      - id: createbuildversion
         run: echo "buildversion=$(date +'%y.%m%d').${{github.run_number}}" >> "$GITHUB_OUTPUT"
 
-      - id: buildcommit
+      - id: createbuildcommit
         run: echo "buildcommit=${{github.sha}}" >> "$GITHUB_OUTPUT"
 
       - name: Check created build variables
@@ -40,6 +41,35 @@ jobs:
           echo "Using output2 ${{needs.createbuildvars.outputs.output2}}"
           echo "Using version ${{needs.createbuildvars.outputs.buildversion}}"
           echo "Using commit ${{needs.createbuildvars.outputs.buildcommit}}"
+
+  checkcreatebuildvars:
+    name: Check build variables
+    needs: createbuildvars
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Print build variables 1
+        run: |
+          echo "Using output1 ${{needs.createbuildvars.outputs.output1}}"
+          echo "Using output2 ${{needs.createbuildvars.outputs.output2}}"
+          echo "Using version ${{needs.createbuildvars.outputs.buildversion}}"
+          echo "Using commit ${{needs.createbuildvars.outputs.buildcommit}}"
+
+      - name: Print build variables 2
+        run: |
+          cmd /c set VITE_
+        env:
+          VITE_OUTPUT_1: ${{needs.createbuildvars.outputs.output1}}
+          VITE_OUTPUT_2: ${{needs.createbuildvars.outputs.output2}}
+          VITE_APP_VERSION: ${{needs.createbuildvars.outputs.buildversion}}
+          VITE_APP_COMMIT_ID: ${{needs.createbuildvars.outputs.buildcommit}}
+          VITE_APP_AI_INSTRUMENTATION_KEY: ${{secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY}}
 
   build-test-rust:
     needs: createbuildvars
@@ -189,13 +219,18 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install requirements.txt
+      - name: Install python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10.14'
           cache: 'pip' # caching pip dependencies
-      - run: |
+
+      - name: Install requirements.txt
+        run: |
           cd ml
+          python --version
+          pip --version
+          pip install --upgrade wheel
           pip install -r requirements.txt
 
       - name: Run lint

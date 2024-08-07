@@ -2,7 +2,7 @@ import math
 import keras_ocr
 
 
-def get_distance(preds):
+def __get_distance(preds):
     """
     Function returns dictionary with (key,value):
         * text : detected text in image
@@ -46,7 +46,7 @@ def get_distance(preds):
     return detections
 
 
-def distinguish_rows(lst, thresh=15):
+def __distinguish_rows(lst, thresh=15):
     """Function to help distinguish unique rows"""
     sublists = []
     for i in range(0, len(lst) - 1):
@@ -60,42 +60,26 @@ def distinguish_rows(lst, thresh=15):
     yield sublists
 
 
-IMAGE_PATH = "/mnt/d/src/delme/memes/F-3CwLyXUAA1Hwj.jpeg"
+def get_text(pipeline, img_path):
+    # Read in image
+    read_image = keras_ocr.tools.read(img_path)
 
-# Initialize pipeline
-pipeline = keras_ocr.pipeline.Pipeline()
+    # prediction_groups is a list of (word, box) tuples
+    prediction_groups = pipeline.recognize([read_image])
+    predictions = prediction_groups[0]  # extract text list
+    predictions = __get_distance(predictions)
 
-# Read in image
-read_image = keras_ocr.tools.read(IMAGE_PATH)
+    # Set thresh higher for text further apart
+    predictions = list(__distinguish_rows(predictions, thresh=15))
 
-# prediction_groups is a list of (word, box) tuples
-prediction_groups = pipeline.recognize([read_image])
+    # Remove all empty rows
+    predictions = list(filter(lambda x: x != [], predictions))
 
-keras_ocr.tools.drawAnnotations(image=read_image, predictions=prediction_groups[0])
+    # Order text detections in human readable format
+    ordered_preds = []
+    for row in predictions:
+        row = sorted(row, key=lambda x: x["distance_from_origin"])
+        for each in row:
+            ordered_preds.append(each["text"])
 
-raw_detections = []
-for prediction in prediction_groups[0]:
-    raw_detections.append(prediction[0])
-print(f"Detections: {raw_detections}")  # out of order
-
-
-predictions = prediction_groups[0]  # extract text list
-predictions = get_distance(predictions)
-print(f"Predictions: {predictions}")
-
-
-# Set thresh higher for text further apart
-predictions = list(distinguish_rows(predictions, thresh=15))
-print(f"Predictions: {predictions}")
-
-# Remove all empty rows
-predictions = list(filter(lambda x: x != [], predictions))
-
-
-# Order text detections in human readable format
-ordered_preds = []
-for row in predictions:
-    row = sorted(row, key=lambda x: x["distance_from_origin"])
-    for each in row:
-        ordered_preds.append(each["text"])
-print(f"Detections: {ordered_preds}")
+    return ordered_preds
