@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      memetics_lib:
+        specifier: file:../lib/pkg
+        version: file:../lib/pkg
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -1475,6 +1478,9 @@ packages:
 
   magic-string@0.30.10:
     resolution: {integrity: sha512-iIRwTIf0QKV3UAnYK4PU8uiEc4SRh5jX0mwpIwETPpHdhVM4f53RSwS/vXvN1JhGX+Cs7B8qIq3d6AH49O5fAQ==}
+
+  memetics_lib@file:../lib/pkg:
+    resolution: {directory: ../lib/pkg, type: directory}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -3743,6 +3749,8 @@ snapshots:
   magic-string@0.30.10:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  memetics_lib@file:../lib/pkg: {}
 
   merge-stream@2.0.0: {}
 
