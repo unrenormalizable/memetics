@@ -1,8 +1,8 @@
 name: cdp
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_ORG_ID: ${{secrets.VERCEL_ORG_ID}}
+  VERCEL_PROJECT_ID: ${{secrets.VERCEL_PROJECT_ID}}
 
 on:
   push:
@@ -14,21 +14,44 @@ on:
     branches: [master]
 
 jobs:
+  createbuildvars:
+    runs-on: windows-latest
+    outputs:
+      output1: ${{steps.step1.outputs.test}}
+      output2: ${{steps.step2.outputs.test}}
+      buildversion: ${{steps.buildversion.outputs.buildversion}}
+      buildcommit: ${{steps.buildcommit.outputs.buildcommit}}
+    steps:
+      - id: step1
+        run: echo "test=hello" >> "$GITHUB_OUTPUT"
+
+      - id: step2
+        run: echo "test=world" >> "$GITHUB_OUTPUT"
+
+      - id: buildversion
+        run: echo "buildversion=$(date +'%y.%m%d').${{github.run_number}}" >> "$GITHUB_OUTPUT"
+
+      - id: buildcommit
+        run: echo "buildcommit=${{github.sha}}" >> "$GITHUB_OUTPUT"
+
+      - name: Check created build variables
+        run: |
+          echo "Using output1 ${{needs.createbuildvars.outputs.output1}}"
+          echo "Using output2 ${{needs.createbuildvars.outputs.output2}}"
+          echo "Using version ${{needs.createbuildvars.outputs.buildversion}}"
+          echo "Using commit ${{needs.createbuildvars.outputs.buildcommit}}"
+
   build-test-rust:
+    needs: createbuildvars
     name: Build & test rust
     strategy:
       matrix:
         os:
           - windows-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-
-      - name: Create build version
-        id: createbuildversion
-        run: |
-          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -51,20 +74,16 @@ jobs:
         shell: pwsh
 
   lint-rust:
+    needs: createbuildvars
     name: Lint rust
     strategy:
       matrix:
         os:
           - windows-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-
-      - name: Create build version
-        id: createbuildversion
-        run: |
-          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -87,31 +106,14 @@ jobs:
           cargo clippy --all-targets --all-features -- -D warnings
 
   build-lint-test-web:
+    needs: createbuildvars
     strategy:
       matrix:
         os:
           - windows-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     steps:
       - uses: actions/checkout@v1
-
-      - name: Create build version
-        id: createbuildversion
-        run: |
-          cd web
-          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
-
-      - name: Create build commit
-        id: createbuildcommit
-        run: |
-          cd web
-          echo "buildcommit::${{ github.sha }}" >> $GITHUB_OUTPUT
-
-      - name: Check run env variables
-        run: |
-          cd web
-          echo "Using version ${{ steps.createbuildversion.outputs.buildversion }}"
-          echo "Using commit ${{ steps.createbuildcommit.outputs.buildcommit }}"
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -161,65 +163,38 @@ jobs:
           cd web
           pnpm test
 
-      - name: Build
+      - name: Build & deploy
         run: |
           cd web
           cmd /c set VITE_
-          pnpm build
+          vercel pull --yes --environment=production --token=${{secrets.VERCEL_TOKEN}}
+          vercel build --prod --token=${{secrets.VERCEL_TOKEN}}
+          vercel deploy --prebuilt --prod --token=${{secrets.VERCEL_TOKEN}}
         env:
-          VITE_APP_VERSION: ${{ steps.createbuildversion.outputs.buildversion }}
-          VITE_APP_COMMIT_ID: ${{ steps.createbuildcommit.outputs.buildcommit }}
-          VITE_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
+          VITE_OUTPUT_1: ${{needs.createbuildvars.outputs.output1}}
+          VITE_OUTPUT_2: ${{needs.createbuildvars.outputs.output2}}
+          VITE_APP_VERSION: ${{needs.createbuildvars.outputs.buildversion}}
+          VITE_APP_COMMIT_ID: ${{needs.createbuildvars.outputs.buildcommit}}
+          VITE_APP_AI_INSTRUMENTATION_KEY: ${{secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY}}
 
-      - name: Deploy
-        run: |
-          cd web
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-  build-test-py:
+  build-lint-test-py:
+    needs: createbuildvars
     name: Build & Test python
     strategy:
       matrix:
         os:
-          - windows-latest
-    runs-on: ${{ matrix.os }}
+          - ubuntu-latest
+    runs-on: ${{matrix.os}}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Install requirements.txt
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11.0'
+          python-version: '3.10.14'
           cache: 'pip' # caching pip dependencies
       - run: |
-          cd ml
-          pip install -r requirements.txt
-
-      - name: Running tests
-        continue-on-error: false
-        run: |
-          cd ml
-          nose2
-        shell: pwsh
-
-  lint-py:
-    name: Lint python
-    strategy:
-      matrix:
-        os:
-          - windows-latest
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11.0'
-          cache: 'pip' # caching pip dependencies
-      - run:  |
           cd ml
           pip install -r requirements.txt
 
@@ -238,9 +213,15 @@ jobs:
           cd ml
           nb-clean check *.ipynb -e -M
 
+      - name: Running tests
+        continue-on-error: false
+        run: |
+          cd ml
+          nose2
+
   finish:
     name: Waiting on rest of the jobs
-    needs: [build-test-rust, lint-rust, build-lint-test-web, build-test-py, lint-py]
+    needs: [build-test-rust, lint-rust, build-lint-test-web, build-lint-test-py]
     runs-on: windows-latest
     steps:
       - run: |
