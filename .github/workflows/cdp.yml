@@ -37,23 +37,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Install wasm-pack
-        continue-on-error: false
-        run: |
-          cd lib
-          cargo install wasm-pack
-
       - name: Run cargo build
         continue-on-error: false
         run: |
           cd lib
           cargo build --release --examples
-
-      - name: Run wasm-pack
-        continue-on-error: false
-        run: |
-          cd lib
-          wasm-pack build --release
 
       - name: Run cargo test
         continue-on-error: false
@@ -107,12 +95,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          version: 9
-          run_install: false
-
       - name: Create build version
         id: createbuildversion
         run: |
@@ -130,6 +112,31 @@ jobs:
           cd web
           echo "Using version ${{steps.createbuildversion.outputs.buildversion}}"
           echo "Using version ${{steps.createbuildversion.outputs.buildcommit}}"
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install wasm-pack
+        continue-on-error: false
+        run: |
+          cd lib
+          cargo install wasm-pack
+
+      - name: Run wasm-pack
+        continue-on-error: false
+        run: |
+          cd lib
+          wasm-pack build --release
 
       - name: Install
         run: |
