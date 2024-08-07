@@ -37,11 +37,23 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install wasm-pack
+        continue-on-error: false
+        run: |
+          cd lib
+          cargo install wasm-pack
+
       - name: Run cargo build
         continue-on-error: false
         run: |
           cd lib
           cargo build --release --examples
+
+      - name: Run wasm-pack
+        continue-on-error: false
+        run: |
+          cd lib
+          wasm-pack build --release
 
       - name: Run cargo test
         continue-on-error: false
@@ -107,10 +119,17 @@ jobs:
           cd web
           echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.run_number }}"
 
+      - name: Create build version
+        id: createbuildcommit
+        run: |
+          cd web
+          echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.sha }}"
+
       - name: Check build version
         run: |
           cd web
           echo "Using version ${{steps.createbuildversion.outputs.buildversion}}"
+          echo "Using version ${{steps.createbuildversion.outputs.buildcommit}}"
 
       - name: Install
         run: |
@@ -137,9 +156,10 @@ jobs:
           cd web
           pnpm build
         env:
-          REACT_APP_RELATIVE_ROOT: /apps # NOTE: Ensure no trailing '/'
-          REACT_APP_VERSION: ${{steps.createbuildversion.outputs.buildversion}}
-          REACT_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
+          VITE_APP_RELATIVE_ROOT: /apps # NOTE: Ensure no trailing '/'
+          VITE_APP_VERSION: ${{steps.createbuildversion.outputs.buildversion}}
+          VITE_APP_COMMIT_ID: ${{steps.createbuildversion.outputs.buildcommit}}
+          VITE_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
 
       - name: Set PWA scope
         uses: benday-inc/set-property-value-in-appsettings@main

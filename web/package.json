@@ -1,5 +1,5 @@
 {
-  "name": "memes",
+  "name": "memetics",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "memetics_lib": "file:../lib/pkg"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.6",

@@ -46,6 +46,7 @@ Generated\ Files/
 # Rust
 *.snap.new
 target/
+pkg/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
