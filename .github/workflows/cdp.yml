@@ -126,6 +126,9 @@ jobs:
           version: 9
           run_install: false
 
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
       - name: Install wasm-pack
         continue-on-error: false
         run: |
@@ -167,27 +170,17 @@ jobs:
           VITE_APP_COMMIT_ID: ${{steps.createbuildversion.outputs.buildcommit}}
           VITE_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
 
-  deploy:
-    name: Deplot
-    needs: [build-test-rust, lint-rust, build-lint-test-web]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull Environment Information
+      - name: Deploy
         run: |
           cd web
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        run: |
-          cd web
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: |
-          cd web
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  finish:
+    name: Waiting on rest of the jobs
+    needs: [build-test-rust, lint-rust, build-lint-test-web]
+    runs-on: windows-latest
+    steps:
+      - run: |
+          echo done...
