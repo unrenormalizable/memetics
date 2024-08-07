@@ -28,7 +28,7 @@ jobs:
       - name: Create build version
         id: createbuildversion
         run: |
-          echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.run_number }}"
+          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -64,7 +64,7 @@ jobs:
       - name: Create build version
         id: createbuildversion
         run: |
-          echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.run_number }}"
+          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -99,19 +99,19 @@ jobs:
         id: createbuildversion
         run: |
           cd web
-          echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.run_number }}"
+          echo "buildversion::$(date +'%y.%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
 
-      - name: Create build version
+      - name: Create build commit
         id: createbuildcommit
         run: |
           cd web
-          echo "::set-output name=buildversion::$(date +'%y.%m%d').${{ github.sha }}"
+          echo "buildcommit::${{ github.sha }}" >> $GITHUB_OUTPUT
 
-      - name: Check build version
+      - name: Check run env variables
         run: |
           cd web
-          echo "Using version ${{steps.createbuildversion.outputs.buildversion}}"
-          echo "Using version ${{steps.createbuildversion.outputs.buildcommit}}"
+          echo "Using version ${{ steps.createbuildversion.outputs.buildversion }}"
+          echo "Using commit ${{ steps.createbuildcommit.outputs.buildcommit }}"
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -164,10 +164,11 @@ jobs:
       - name: Build
         run: |
           cd web
+          cmd /c set VITE_
           pnpm build
         env:
-          VITE_APP_VERSION: ${{steps.createbuildversion.outputs.buildversion}}
-          VITE_APP_COMMIT_ID: ${{steps.createbuildversion.outputs.buildcommit}}
+          VITE_APP_VERSION: ${{ steps.createbuildversion.outputs.buildversion }}
+          VITE_APP_COMMIT_ID: ${{ steps.createbuildcommit.outputs.buildcommit }}
           VITE_APP_AI_INSTRUMENTATION_KEY: ${{ secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY }}
 
       - name: Deploy
@@ -177,9 +178,69 @@ jobs:
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
+  build-test-py:
+    name: Build & Test python
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.0'
+          cache: 'pip' # caching pip dependencies
+      - run: |
+          cd ml
+          pip install -r requirements.txt
+
+      - name: Running tests
+        continue-on-error: false
+        run: |
+          cd ml
+          nose2
+        shell: pwsh
+
+  lint-py:
+    name: Lint python
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.0'
+          cache: 'pip' # caching pip dependencies
+      - run:  |
+          cd ml
+          pip install -r requirements.txt
+
+      - name: Run lint
+        run: |
+          cd ml
+          pylint *.py **/*.py
+
+      - name: Check code format
+        run: |
+          cd ml
+          black --check --diff .
+
+      - name: Check notebooks are clean
+        run: |
+          cd ml
+          nb-clean check *.ipynb -e -M
+
   finish:
     name: Waiting on rest of the jobs
-    needs: [build-test-rust, lint-rust, build-lint-test-web]
+    needs: [build-test-rust, lint-rust, build-lint-test-web, build-test-py, lint-py]
     runs-on: windows-latest
     steps:
       - run: |

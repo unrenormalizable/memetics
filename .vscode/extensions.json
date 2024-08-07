@@ -5,6 +5,8 @@
     "christian-kohler.path-intellisense",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "bradlc.vscode-tailwindcss"
+    "bradlc.vscode-tailwindcss",
+    "ms-python.pylint",
+    "ms-python.black-formatter"
   ]
 }
