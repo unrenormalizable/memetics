@@ -1,16 +1,24 @@
 # memetics - ML pipeline
 
-Pipeline:
-- Make consistent name
-- Preprocess pics 
-  - Make all jpeg
-  - Make less than 800x800
-  - Generate thumb-nails
-- Extract text
-  - remove less than 2 letter words, non english characters
-  - remove non valid words
-- Generate index.db
-- Upload pic / thumbnail / images to azure
+Pipeline: 
+o Principles
+  - Pure
+  - Idempotent
+  - Append
+o Steps
+  v Make consistent name
+  o Preprocess pics 
+    x Make all jpeg
+    ? Make less than 800x800
+    - Generate thumb-nails
+  o Extract text
+    v call keras-ocr
+    - remove less than 2 letter words, non english characters
+    - remove non valid words
+  v Generate index.json
+  o Upload pic / thumbnail / images to azure
+    o manual
+    - automate
 
 Note:
 - Using WSL / GPU stuff. TF/Keras on GPU doesn't seem to work otherwise.
