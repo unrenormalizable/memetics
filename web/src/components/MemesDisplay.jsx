@@ -3,6 +3,7 @@ import { Gallery } from 'react-grid-gallery'
 import FlexSearch from 'flexsearch'
 import useSWR from 'swr'
 import * as Constants from '../constants'
+import { fetcher } from '../utils'
 
 const buildIndex = (reg) => {
   const index = new FlexSearch.Index({
@@ -15,7 +16,9 @@ const buildIndex = (reg) => {
 }
 
 const MemesDisplay = ({ query }) => {
-  let { data: registry } = useSWR(Constants.INDEX_JSON, { suspense: true })
+  let { data: registry } = useSWR(Constants.INDEX_JSON, fetcher, {
+    suspense: true,
+  })
   let [index, setIndex] = useState(null)
   let [registryMap, setRegistryMap] = useState({})
 
@@ -34,7 +37,7 @@ const MemesDisplay = ({ query }) => {
   }, [registry])
 
   const filtered = useMemo(() => {
-    if (!query || query.length === 0) {
+    if (!index || !query || query.length === 0) {
       return []
     }
 
@@ -44,7 +47,7 @@ const MemesDisplay = ({ query }) => {
   if (!filtered.length) {
     return (
       <div className="h-full content-center text-center">
-        Search from the search box.
+        Use the search box to find memes (shortcut &apos;/&apos;).
       </div>
     )
   }
