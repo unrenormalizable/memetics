@@ -1,7 +1,7 @@
 const Footer = ({ appVersion, commitId }) => {
   const repoUrl = 'https://github.com/unrenormalizable/memetics'
   return (
-    <div className="text-xs">
+    <div className="mt-1 text-center text-xs">
       <a href={repoUrl} target="_blank">
         memetics
       </a>

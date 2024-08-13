@@ -12,10 +12,10 @@ const Home = () => {
       <section className="flex-none">
         <C.SearchBox setQuery={setQuery} />
       </section>
-      <section className="flex-grow overflow-y-auto">
+      <section className="flex-grow overflow-y-auto px-3">
         <C.MemesDisplay query={query} />
       </section>
-      <footer className="mt-1 flex-none text-center">
+      <footer className="flex-none">
         <C.Footer
           appVersion={`${import.meta.env.VITE_APP_VERSION}`}
           commitId={import.meta.env.VITE_APP_COMMIT_ID}

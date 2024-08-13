@@ -4,6 +4,7 @@ import FlexSearch from 'flexsearch'
 import useSWR from 'swr'
 import * as Constants from '../constants'
 import { fetcher } from '../utils'
+import { useAppInsightsContext } from '@microsoft/applicationinsights-react-js'
 
 const buildIndex = (reg) => {
   const index = new FlexSearch.Index({
@@ -16,6 +17,7 @@ const buildIndex = (reg) => {
 }
 
 const MemesDisplay = ({ query }) => {
+  const ai = useAppInsightsContext()
   let { data: registry } = useSWR(Constants.INDEX_JSON, fetcher, {
     suspense: true,
   })
@@ -44,6 +46,7 @@ const MemesDisplay = ({ query }) => {
     return index.search(query).map((i) => registryMap[i])
   }, [index, registryMap, query])
 
+  ai.trackEvent({ name: 'memetics-search' }, { query, count: filtered.length })
   if (!filtered.length) {
     return (
       <div className="h-full content-center text-center">
