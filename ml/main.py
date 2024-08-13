@@ -1,4 +1,6 @@
+import os
 import json
+from PIL import Image
 
 # import keras_ocr
 # import recognizer
@@ -28,16 +30,26 @@ INDEX_TEXT = f"{DST_PATH}index.txt"
 
 
 def __process_text(text):
-    return text.replace("|", " ")
+    return text.rstrip().replace("|", " ")
 
 
-def __get_records():
+def __get_records(path):
     with open(INDEX_TEXT, "r", encoding="UTF-8") as file:
-        while line := file.readline():
-            kv = line.rstrip().split(" = ")
-            yield {"id": kv[0], "text": __process_text(kv[1]) if len(kv) > 1 else ""}
+        for i, line in enumerate(file):
+            kv = line.split(" = ")
+            _id = kv[0].rstrip()
+            description = __process_text(kv[1]) if len(kv) > 1 else ""
+            w, h = Image.open(os.path.join(path, _id)).size
+            yield {
+                "id": i,
+                "width": w,
+                "height": h,
+                "tags": [],
+                "img": _id,
+                "description": description,
+            }
 
 
 with open(INDEX_JSON, "w", encoding="UTF-8") as f:
-    data = list(__get_records())
+    data = list(__get_records(DST_PATH))
     json.dump(data, f)

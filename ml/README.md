@@ -1,10 +1,10 @@
 # memetics - ML pipeline
 
 Pipeline: 
-o Principles
+o Design Principles
   - Pure
   - Idempotent
-  - Append
+  - Incremental
 o Steps
   v Make consistent name
   o Preprocess pics 

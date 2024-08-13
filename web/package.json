@@ -22,9 +22,15 @@
     ]
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
+    "flexsearch": "^0.7.43",
+    "memetics_lib": "file:../lib/pkg",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "memetics_lib": "file:../lib/pkg"
+    "react-error-boundary": "^4.0.13",
+    "react-grid-gallery": "^1.0.1",
+    "swr": "^2.2.5",
+    "use-debounce": "^10.0.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.6",
