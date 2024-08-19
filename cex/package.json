@@ -1,5 +1,5 @@
 {
-  "name": "memetics",
+  "name": "memetics-downloader-extension",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,27 +14,29 @@
     "test": "vitest --run"
   },
   "dependencies": {
+    "@crxjs/vite-plugin": "2.0.0-beta.25",
     "@heroicons/react": "^2.1.5",
     "@microsoft/applicationinsights-react-js": "^17.3.0",
     "@microsoft/applicationinsights-web": "^3.3.1",
-    "flexsearch": "^0.7.43",
+    "@vitejs/plugin-react-swc": "^3.5.0",
     "history": "^5.3.0",
-    "memetics_lib": "file:../lib/pkg",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.13",
-    "react-grid-gallery": "^1.0.1",
     "react-hotkeys-hook": "^4.5.0",
     "react-router-dom": "^6.26.0",
     "swr": "^2.2.5",
-    "use-debounce": "^10.0.2"
+    "tailwindcss": "^3.4.4",
+    "use-debounce": "^10.0.2",
+    "vite": "^5.4.1",
+    "vite-jsconfig-paths": "^2.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.6",
     "@testing-library/react": "^16.0.0",
-    "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.1.3",
@@ -47,8 +49,6 @@
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
-    "tailwindcss": "^3.4.4",
-    "vite": "^5.3.1",
     "vitest": "^2.0.2"
   }
 }

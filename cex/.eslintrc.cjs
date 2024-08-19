@@ -1,0 +1,33 @@
+module.exports = {
+  root: true,
+  env: { browser: true, es2020: true, webextensions: true },
+  extends: [
+    'eslint:recommended',
+    'airbnb',
+    'plugin:react/recommended',
+    'plugin:react/jsx-runtime',
+    'plugin:react-hooks/recommended',
+    'eslint-config-prettier',
+    'plugin:import/recommended',
+  ],
+  ignorePatterns: ['dist'],
+  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  settings: {
+    react: { version: '18.2' },
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx'],
+      },
+    },
+  },
+  plugins: ['react-refresh', 'import'],
+  rules: {
+    'react/jsx-no-target-blank': 'off',
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
+    'import/newline-after-import': ['error', { count: 1 }],
+    'react/prop-types': 0,
+  },
+}

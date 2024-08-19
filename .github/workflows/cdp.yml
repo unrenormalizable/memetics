@@ -129,22 +129,48 @@ jobs:
           cd lib
           wasm-pack build --release
 
-      - name: Install npm packages
+      - name: Install pnpm packages (cex)
+        run: |
+          cd cex
+          pnpm install --frozen-lockfile --strict-peer-dependencies
+
+      #
+      # build, lint, test cex
+      #
+      - name: Check code format (cex)
+        run: |
+          cd cex
+          pnpm format
+
+      - name: Lint code (cex)
+        run: |
+          cd cex
+          pnpm lint
+
+      - name: Test (cex)
+        run: |
+          cd cex
+          pnpm test
+
+      #
+      # build, lint, test & deploy web
+      #
+      - name: Install pnpm packages (web)
         run: |
           cd web
           pnpm install --frozen-lockfile --strict-peer-dependencies
 
-      - name: Check code format
+      - name: Check code format (web)
         run: |
           cd web
           pnpm format
 
-      - name: Lint code
+      - name: Lint code (web)
         run: |
           cd web
           pnpm lint
 
-      - name: Test
+      - name: Test (web)
         run: |
           cd web
           pnpm test
@@ -162,7 +188,7 @@ jobs:
           VITE_APP_AI_INSTRUMENTATION_KEY: ${{secrets.AZURE_CREDENTIALS_KSAPPLICATIONS_AI_KEY}}
 
   build-lint-test-py:
-    continue-on-error: true # TODO: Temporary hack till we figure out whats wrong with python setup on GitHub
+    if: false # TODO: Temporary hack till we figure out whats wrong with python setup on GitHub
     needs: createbuildvars
     name: Build & Test python
     strategy:
