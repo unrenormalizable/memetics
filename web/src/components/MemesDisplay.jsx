@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Gallery } from 'react-grid-gallery'
 import FlexSearch from 'flexsearch'
 import useSWR from 'swr'
-import * as Constants from '../constants'
-import { fetcher } from '../utils'
 import { useAppInsightsContext } from '@microsoft/applicationinsights-react-js'
+import { fetcher } from '../utils'
+import * as Constants from '../constants'
 
 const buildIndex = (reg) => {
   const index = new FlexSearch.Index({
@@ -18,21 +18,20 @@ const buildIndex = (reg) => {
 
 const MemesDisplay = ({ query }) => {
   const ai = useAppInsightsContext()
-  let { data: registry } = useSWR(Constants.INDEX_JSON, fetcher, {
+  const { data: registry } = useSWR(Constants.INDEX_JSON, fetcher, {
     suspense: true,
   })
-  let [index, setIndex] = useState(null)
-  let [registryMap, setRegistryMap] = useState({})
+  const [index, setIndex] = useState(null)
+  const [registryMap, setRegistryMap] = useState({})
 
   useEffect(() => {
-    const index = buildIndex(registry)
-    setIndex(index)
+    const idx = buildIndex(registry)
+    setIndex(idx)
     setRegistryMap(
       registry
         .map((e) => {
-          let x = { ...e }
-          x.src = `${Constants.MEME_BASE}/${e.img}`
-          return x
+          e.src = `${Constants.MEME_BASE}/${e.img}`
+          return e
         })
         .sort((a, b) => a.id - b.id)
     )

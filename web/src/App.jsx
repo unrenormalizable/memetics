@@ -9,28 +9,24 @@ import * as P from './pages'
 import * as C from './components'
 import './App.css'
 
-const App = () => {
-  return (
-    <AppInsightsContext.Provider value={reactPlugin}>
-      <AppInsightsErrorBoundary
-        onError={() => (
-          <C.Error>
-            Some error occurred. Report the stack trace in console and try
-            refreshing.
-          </C.Error>
-        )}
-        appInsights={reactPlugin}
-      >
-        <Suspense fallback={<C.Spinner />}>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<P.Home />} />
-            </Routes>
-          </BrowserRouter>
-        </Suspense>
-      </AppInsightsErrorBoundary>
-    </AppInsightsContext.Provider>
-  )
-}
+const ErrorPage = () => (
+  <C.Error>
+    Some error occurred. Report the stack trace in console and try refreshing.
+  </C.Error>
+)
+
+const App = () => (
+  <AppInsightsContext.Provider value={reactPlugin}>
+    <AppInsightsErrorBoundary onError={ErrorPage} appInsights={reactPlugin}>
+      <Suspense fallback={<C.Spinner />}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<P.Home />} />
+          </Routes>
+        </BrowserRouter>
+      </Suspense>
+    </AppInsightsErrorBoundary>
+  </AppInsightsContext.Provider>
+)
 
 export default App

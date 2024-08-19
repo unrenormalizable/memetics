@@ -3,6 +3,7 @@ module.exports = {
   env: { browser: true, es2020: true },
   extends: [
     'eslint:recommended',
+    'airbnb',
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
@@ -28,5 +29,13 @@ module.exports = {
     ],
     'import/newline-after-import': ['error', { count: 1 }],
     'react/prop-types': 0,
+    'react/function-component-definition': [
+      2,
+      {
+        namedComponents: 'arrow-function',
+        unnamedComponents: 'arrow-function',
+      },
+    ],
+    'no-param-reassign': ['error', { props: false }],
   },
 }

@@ -2,13 +2,10 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web'
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js'
 import { createBrowserHistory } from 'history'
 
-const browserHistory = createBrowserHistory({
-  basename: import.meta.env.BASE_URL,
-})
+const browserHistory = createBrowserHistory()
 
 export const reactPlugin = new ReactPlugin()
 
-console.log(import.meta.env.VITE_APP_AI_INSTRUMENTATION_KEY)
 export const appInsights = new ApplicationInsights({
   config: {
     connectionString: `InstrumentationKey=${import.meta.env.VITE_APP_AI_INSTRUMENTATION_KEY};IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=262105ba-2fe1-40c7-b3f3-fcd58d34acbc`,
