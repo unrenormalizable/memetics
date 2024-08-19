@@ -7,6 +7,12 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
-  "include": ["public"],
+  "include": [
+    "public",
+    "./src/**/*.js",
+    "./src/**/*.jsx",
+    "./tests/**/*.js",
+    "./tests/**/*.jsx"
+  ],
   "exclude": ["node_modules", "**/node_modules/*"]
 }

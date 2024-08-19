@@ -6,8 +6,9 @@ import { crx, defineManifest } from '@crxjs/vite-plugin'
 
 const manifest = defineManifest({
   manifest_version: 3,
-  name: 'memetics downloader extension',
+  name: 'memetics',
   version: '0.0.1',
+  permissions: ['contextMenus', 'scripting'],
   icons: {
     16: 'icon-16.png',
     32: 'icon-32.png',
@@ -18,10 +19,14 @@ const manifest = defineManifest({
   action: {
     default_popup: 'index.html',
   },
+  background: {
+    service_worker: 'src/background.js',
+    type: 'module',
+  },
   content_scripts: [
     {
       js: ['src/content.jsx'],
-      matches: ['https://www.google.com/*'],
+      matches: ['https://x.com/*', 'https://www.facebook.com/*'],
     },
   ],
 })

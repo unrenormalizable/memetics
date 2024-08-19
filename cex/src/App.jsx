@@ -1,6 +1,7 @@
 import './App.css'
 
-const getURL = window.chrome?.runtime?.getURL ?? ((path) => path)
+const getURL =
+  typeof chrome !== 'undefined' ? chrome.runtime.getURL : (path) => path
 
 const memeticsLogoUrl = getURL('/icon.svg')
 
