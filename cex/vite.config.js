@@ -8,7 +8,7 @@ const manifest = defineManifest({
   manifest_version: 3,
   name: 'memetics',
   version: '0.0.1',
-  permissions: ['contextMenus', 'scripting'],
+  permissions: ['contextMenus', 'scripting', 'downloads', 'activeTab'],
   icons: {
     16: 'icon-16.png',
     32: 'icon-32.png',
