@@ -63,11 +63,11 @@ const __injectedFnDownloadImageWithInfo = async (info) => {
     return [fileName, blob]
   }
 
-  const __createInfoBlob = async (imageUrl, imageUrlHash) => {
+  const __createInfoBlob = async (imageUrl, imageUrlHash, linkUrl) => {
     const imageElement = document.querySelector(`img[src="${imageUrl}"]`)
-    const nearbyText = `${imageElement?.altx || ''} ${imageElement.closest('figure')?.innerText || ''} ${imageElement.closest('article').innerText || ''} ${imageElement.closest('div').innerText || ''}`
+    const nearbyText = `${imageElement?.alt || ''} ${imageElement.closest('figure')?.innerText || ''} ${imageElement.closest('article')?.innerText || ''} ${imageElement.closest('div')?.innerText || ''}`
 
-    const blob = new Blob([JSON.stringify({ url: imageUrl, nearbyText })], {
+    const blob = new Blob([JSON.stringify({ url: linkUrl, nearbyText })], {
       type: 'application/json',
     })
     const fileName = `memetics_${imageUrlHash}.json`
@@ -88,7 +88,8 @@ const __injectedFnDownloadImageWithInfo = async (info) => {
 
     const [infoFileName, infoBlob] = await __createInfoBlob(
       info.srcUrl,
-      srcUrlHash
+      srcUrlHash,
+      info.linkUrl
     )
     __downloadBlob(infoFileName, infoBlob)
   } catch (e) {
