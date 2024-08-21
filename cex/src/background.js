@@ -1,20 +1,32 @@
+/* eslint-disable no-alert */
 /* eslint-disable no-bitwise */
 /* eslint-disable no-console */
 /* eslint-disable no-underscore-dangle */
 // @ts-nocheck
 
-const downloadMemeMenuItemId = 'saveImageWithText'
-const logInfo = console.log
-const logError = console.error
+// NOTE:
+// Test cases:
+// - FB X Twitter
+// - Profile X Feed
+// - Single image X Multiple image
 
+//
+// This script is injected into the page. It requires a full set of redefinitions for now.
+// Will check later how to share the code.
+//
 const __injectedFnDownloadImageWithInfo = async (info) => {
-  // This script is injected into the page. It requires a full set of redefinitions for now.
-  // Will check later how to share the code.
-  //
-
   const __logInfo = console.log
   const __logError = console.error
+  // NOTE: Violation of OCP. Refactor when we support a 3rd site.
+  const __isHost = (host) => {
+    const url = new URL(window.location.href)
+    return url.hostname.toLocaleLowerCase().endsWith(host)
+  }
+  const __isTwitter = () => __isHost('x.com')
+  const __isFacebook = () => __isHost('facebook.com')
 
+  const imageUrl = info.srcUrl
+  const contextUrl = info.linkUrl
   __logInfo('>>>> downloadImageWithInfo', info)
 
   const __cyrb53Hash = (str, seed = 0) => {
@@ -37,7 +49,9 @@ const __injectedFnDownloadImageWithInfo = async (info) => {
   const __getExtensionFromStreamType = (type) => {
     const typeParts = !type ? [] : type.split('/')
     if (typeParts.length !== 2) {
-      throw new Error(`type not defined or not in expected format ${type}`)
+      const message = `type not defined or not in expected format ${type}`
+      alert(message)
+      throw new Error(message)
     }
 
     return typeParts[1]
@@ -53,49 +67,107 @@ const __injectedFnDownloadImageWithInfo = async (info) => {
     URL.revokeObjectURL(objUrl)
   }
 
-  const __createImageBlob = async (imageURL, imageUrlHash) => {
-    const imageStream = await fetch(imageURL)
+  const __createImageBlob = async (imgUrl, imgUrlHash) => {
+    const imageStream = await fetch(imgUrl)
     const blob = await imageStream.blob()
     const fileExtension = __getExtensionFromStreamType(blob.type)
-    const fileName = `memetics_${imageUrlHash}.${fileExtension}`
+    const fileName = `memetics_${imgUrlHash}.${fileExtension}`
     __logInfo('downloadImage', blob, fileName)
 
     return [fileName, blob]
   }
 
-  const __createInfoBlob = async (imageUrl, imageUrlHash, linkUrl) => {
-    const imageElement = document.querySelector(`img[src="${imageUrl}"]`)
-    const nearbyText = `${imageElement?.alt || ''} ${imageElement.closest('figure')?.innerText || ''} ${imageElement.closest('article')?.innerText || ''} ${imageElement.closest('div')?.innerText || ''}`
+  const __getNearbyText = (imgUrl) => {
+    const e = document.querySelector(`img[src="${imgUrl}"]`)
 
-    const blob = new Blob([JSON.stringify({ url: linkUrl, nearbyText })], {
-      type: 'application/json',
-    })
-    const fileName = `memetics_${imageUrlHash}.json`
+    let nearbyText = `${e?.alt} `
+    if (__isTwitter()) {
+      nearbyText += e?.closest("article[data-testid='tweet']")?.innerText ?? ''
+    }
+
+    if (__isFacebook()) {
+      nearbyText +=
+        e
+          ?.closest("div[data-virtualized='false']")
+          ?.innerText?.replace(/(Comment as .*)/, '')
+          ?.replace(/(Facebook)*/gi, '') ?? ''
+    }
+
+    nearbyText = nearbyText?.replace(/\s/g, ' ')?.replace(/\s\s+/g, ' ')
+    if (!nearbyText) {
+      const message = `Unsupported host or image scraping selectors need updating: ${imgUrl}`
+      alert(message)
+      throw new Error(message)
+    }
+
+    return nearbyText
+  }
+
+  const __createInfoBlob = async (imgUrl, imgUrlHash, normalizedContextUrl) => {
+    const nearbyText = __getNearbyText(imgUrl)
+    const blob = new Blob(
+      [JSON.stringify({ context: normalizedContextUrl, nearbyText })],
+      {
+        type: 'application/json',
+      }
+    )
+    const fileName = `memetics_${imgUrlHash}.json`
     __logInfo('downloadInfo', blob, fileName)
 
     return [fileName, blob]
   }
 
+  const __normalizeContextUrl = (ctxtUrl) => {
+    const twitterUrlCracker = /\/photo\/\d+$/
+    if (__isTwitter() && twitterUrlCracker.test(ctxtUrl)) {
+      return ctxtUrl.replace(twitterUrlCracker, '')
+    }
+
+    if (__isFacebook()) {
+      const url = new URL(ctxtUrl)
+      url.searchParams.delete('__cft__[0]')
+      url.searchParams.delete('__tn__')
+      return url.href
+    }
+
+    __logError('Unsupported host', ctxtUrl)
+    return ctxtUrl
+  }
+
   try {
-    const srcUrlHash = __cyrb53Hash(info.srcUrl).toString(16)
-    __logInfo('>>>> ', info.srcUrl, srcUrlHash)
+    const normalizedContextUrl = __normalizeContextUrl(contextUrl)
+    const imageUrlHash = __cyrb53Hash(imageUrl).toString(16)
+
+    __logInfo(
+      'Downloading image & info for',
+      imageUrl,
+      imageUrlHash,
+      normalizedContextUrl
+    )
 
     const [imgFileName, imgBlob] = await __createImageBlob(
-      info.srcUrl,
-      srcUrlHash
+      imageUrl,
+      imageUrlHash
     )
     __downloadBlob(imgFileName, imgBlob)
 
     const [infoFileName, infoBlob] = await __createInfoBlob(
-      info.srcUrl,
-      srcUrlHash,
-      info.linkUrl
+      imageUrl,
+      imageUrlHash,
+      normalizedContextUrl
     )
     __downloadBlob(infoFileName, infoBlob)
   } catch (e) {
     __logError('memetics: Failed to execute script:', e, info)
   }
 }
+
+//
+// background.js stuff. All previous code is injected into the page.
+//
+const downloadMemeMenuItemId = 'saveImageWithText'
+const logInfo = console.log
+const logError = console.error
 
 const downloadMemeClickedHandler = async (info, tab) => {
   try {
@@ -124,4 +196,17 @@ const menuItemClickedHandler = async (info, tab) => {
   }
 }
 
+const downloadsDeterminingFilenameHandler = async (item, __suggest) => {
+  logInfo('>>>> determiningFilename', item, __suggest)
+  await __suggest({
+    filename: item.filename,
+    conflictAction: 'overwrite',
+  })
+
+  return true
+}
+
+chrome.downloads.onDeterminingFilename.addListener(
+  downloadsDeterminingFilenameHandler
+)
 chrome.contextMenus.onClicked.addListener(menuItemClickedHandler)
