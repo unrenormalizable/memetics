@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useDebouncedCallback } from 'use-debounce'
 
-const SearchBox = ({ setQuery }) => {
+const SearchBox = ({ setQuery, memeCount }) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const input = useRef(null)
 
@@ -27,12 +27,15 @@ const SearchBox = ({ setQuery }) => {
         ref={input}
         type="search"
         id="default-search"
-        className="my-5 w-5/6 rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+        className="mb-1 mt-3 w-5/6 rounded-lg border border-gray-300 bg-gray-50 p-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
         placeholder="Search memes... (shortcut '/')"
         defaultValue={searchParams.get('q')}
         onChange={(e) => debounced(e.target.value)}
         required
       />
+      <p className="mb-5 text-xs">
+        Search within {memeCount} memes and counting...
+      </p>
     </div>
   )
 }

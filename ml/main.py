@@ -1,55 +1,49 @@
 import os
+from datetime import datetime
 import json
-from PIL import Image
+import urllib.request
+import logger
+import phase1
+import phase2
+import phase3
 
-# import keras_ocr
-# import recognizer
-# import files_pp
-
-SRC_PATH = "/mnt/d/src/delme/memes/"
-DST_PATH = "/mnt/d/src/delme/memes.pp/"
-INDEX_JSON = f"{DST_PATH}index.json"
-INDEX_TEXT = f"{DST_PATH}index.txt"
-
-# img_paths = files_pp.normalize_names(SRC_PATH, DST_PATH)
-
-# pipeline = keras_ocr.pipeline.Pipeline()
-
-
-# def get_text_from_images(_img_paths):
-#     for img_path in _img_paths:
-#         words = recognizer.get_text(pipeline, img_path[1])
-#         yield (img_path[0], words)
+# Temp for now, manually copy and delete
+PHASE0_DIR = "/mnt/d/src/delme/memes.0/"
+# Normalize names + index
+PHASE1_DIR = "/mnt/d/src/delme/memes.1/"
+RUN_INDEX = f"{PHASE1_DIR}index.run.{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+NEW_MASTER_INDEX = f"{PHASE1_DIR}index.json"
+DIRS_TO_CLEAN = [PHASE1_DIR]
+MASTER_INDEX = "https://ksapplications.blob.core.windows.net/memetics/index.json"
 
 
-# with open(INDEX_TEXT, "w", encoding="utf8") as index:
-#     for img_text in get_text_from_images(img_paths):
-#         print(f"#### Processed {img_text[0]}...")
-#         index.write(f"{img_text[0]} = {'|'.join(img_text[1])}\n")
-#         index.flush()
+def cleanup_dir(_dir):
+    print(f"Deleting contents of {_dir}...")
+    for _f in os.listdir(_dir):
+        os.remove(os.path.join(_dir, _f))
 
 
-def __process_text(text):
-    return text.rstrip().replace("|", " ")
+def __download_master_index(master_index_url):
+    logger.info(f"Downloading {master_index_url}...")
+    index = []
+    with urllib.request.urlopen(master_index_url) as _f:
+        index = json.loads(_f.read().decode("utf-8"))
+    return index
 
 
-def __get_records(path):
-    with open(INDEX_TEXT, "r", encoding="UTF-8") as file:
-        for i, line in enumerate(file):
-            kv = line.split(" = ")
-            _id = kv[0].rstrip()
-            description = __process_text(kv[1]) if len(kv) > 1 else ""
-            w, h = Image.open(os.path.join(path, _id)).size
-            yield {
-                "id": i,
-                "width": w,
-                "height": h,
-                "tags": [],
-                "img": _id,
-                "description": description,
-            }
+for d in DIRS_TO_CLEAN:
+    cleanup_dir(d)
 
+memes = phase1.execute(PHASE0_DIR, PHASE1_DIR)
 
-with open(INDEX_JSON, "w", encoding="UTF-8") as f:
-    data = list(__get_records(DST_PATH))
-    json.dump(data, f)
+records = list(phase2.execute(PHASE1_DIR, memes))
+logger.info(f"Writing run index {RUN_INDEX}...")
+with open(RUN_INDEX, "w", encoding="UTF-8") as f:
+    json.dump(records, f)
+
+prev_master_index = __download_master_index(MASTER_INDEX)
+
+merged_records = phase3.execute(records, prev_master_index)
+logger.info(f"Writing new master index {NEW_MASTER_INDEX}...")
+with open(NEW_MASTER_INDEX, "w", encoding="UTF-8") as f:
+    json.dump(merged_records, f)

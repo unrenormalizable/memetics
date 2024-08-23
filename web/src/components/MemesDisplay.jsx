@@ -11,12 +11,12 @@ const buildIndex = (reg) => {
     tokenize: 'forward',
   })
 
-  reg.forEach((e) => index.add(e.id, e.description))
+  reg.forEach((e) => index.add(e.id, `${e.web_text} | ${e.description}`))
 
   return index
 }
 
-const MemesDisplay = ({ query }) => {
+const MemesDisplay = ({ query, setMemeCount }) => {
   const ai = useAppInsightsContext()
   const { data: registry } = useSWR(Constants.INDEX_JSON, fetcher, {
     suspense: true,
@@ -24,6 +24,7 @@ const MemesDisplay = ({ query }) => {
   const [index, setIndex] = useState(null)
   const [registryMap, setRegistryMap] = useState({})
 
+  setMemeCount(registry.length)
   useEffect(() => {
     const idx = buildIndex(registry)
     setIndex(idx)
@@ -31,6 +32,7 @@ const MemesDisplay = ({ query }) => {
       registry
         .map((e) => {
           e.src = `${Constants.MEME_BASE}/${e.img}`
+          e.caption = `${e.web_text} | ${e.description}`
           return e
         })
         .sort((a, b) => a.id - b.id)
@@ -53,7 +55,12 @@ const MemesDisplay = ({ query }) => {
       </div>
     )
   }
-  return <Gallery images={filtered} />
+  return (
+    <Gallery
+      images={filtered}
+      onClick={(_, img) => window.open(img.context ?? '/', '_blank')}
+    />
+  )
 }
 
 export default MemesDisplay
