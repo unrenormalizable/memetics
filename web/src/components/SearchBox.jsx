@@ -33,7 +33,7 @@ const SearchBox = ({ setQuery, memeCount }) => {
         onChange={(e) => debounced(e.target.value)}
         required
       />
-      <p className="mb-5 text-xs">
+      <p className="mb-5 text-xs text-gray-400">
         Search within {memeCount} memes and counting...
       </p>
     </div>

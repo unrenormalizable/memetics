@@ -18,8 +18,7 @@ def execute(run_index, prev_master_index):
     logger.warning("TODO: Check for collisions between image hashes.")
     logger.warning("TODO: Check for collisions between url_ids.")
     logger.info(f"Previous master index has: {len(prev_master_index)} entries.")
-    logger.info(f"Run index has: {len(prev_master_index)} entries.")
-    new_master_index = run_index + prev_master_index
-    new_master_index = list(__fixup_ids(new_master_index))
-    logger.info(f"New master index has: {len(prev_master_index)} entries.")
+    logger.info(f"Run index has: {len(run_index)} entries.")
+    new_master_index = list(__fixup_ids(run_index + prev_master_index))
+    logger.info(f"New master index has: {len(new_master_index)} entries.")
     return new_master_index

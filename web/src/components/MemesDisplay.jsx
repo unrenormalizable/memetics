@@ -57,6 +57,7 @@ const MemesDisplay = ({ query, setMemeCount }) => {
   }
   return (
     <Gallery
+      enableImageSelection={false}
       images={filtered}
       onClick={(_, img) => window.open(img.context ?? '/', '_blank')}
     />
